@@ -1,0 +1,22 @@
+[package]
+name = "gif-endecoder"
+version = "0.1.0"
+authors = ["mayerph <ph.mayer@campus.lmu.de>"]
+license = "MIT"
+build = "build.rs"
+edition = "2018"
+exclude = ["artifacts.json", "index.node"]
+
+[lib]
+name = "gif_endecoder"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+neon-build = "0.3.3"
+
+[dependencies]
+neon = "0.3.3"
+neon-serde = "0.2.0"
+serde_derive = "1.0.80"
+serde = "1.0.80"
+image = { git = "https://github.com/image-rs/image.git", branch = "master" }

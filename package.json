@@ -1,0 +1,15 @@
+{
+  "name": "gif-endecoder",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "author": "mayerph <ph.mayer@campus.lmu.de>",
+  "license": "MIT",
+  "dependencies": {
+    "neon-cli": "^0.7.0"
+  },
+  "scripts": {
+    "install": "neon build"
+  },
+  "types": "types/index.d.ts"
+}
