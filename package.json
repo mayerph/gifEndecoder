@@ -5,11 +5,12 @@
   "main": "lib/index.js",
   "author": "mayerph <ph.mayer@campus.lmu.de>",
   "license": "MIT",
-  "dependencies": {
-    "neon-cli": "^0.7.0"
-  },
+  "dependencies": {},
   "scripts": {
-    "install": "neon build"
+    "install": "./node_modules/neon-cli/bin/cli.js build"
   },
-  "types": "types/index.d.ts"
+  "types": "types/index.d.ts",
+  "devDependencies": {
+    "neon-cli": "^0.7.0"
+  }
 }
