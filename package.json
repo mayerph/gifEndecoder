@@ -6,11 +6,10 @@
   "author": "mayerph <ph.mayer@campus.lmu.de>",
   "license": "MIT",
   "scripts": {
-   
+    "install" : "neon build"
   },
   "types": "types/index.d.ts",
   "dependencies": {
-    "moment": "^2.29.1",
     "neon-cli": "^0.7.0"
   }
 }
