@@ -5,8 +5,8 @@ use image::io::Reader as ImageReader;
 use image::load_from_memory_with_format;
 use image::Delay as IDelay;
 use image::Frame as IFrame;
-use image::ImageFormat;
 use image::{open, AnimationDecoder, ImageDecoder};
+use image::{ImageFormat, ImageResult};
 use neon::prelude::*;
 use neon::register_module;
 use neon_serde::export;
@@ -143,7 +143,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
     if infinite == true {
         encoder.set_repeat(Infinite).unwrap();
     };
-    let mut frames: Vec<IFrame> = Vec::new();
+    let mut frames: Vec<ImageResult<IFrame>> = Vec::new();
     for (i, custom_frame) in gif.frames.iter().enumerate() {
         println!("1-->{}", i);
         let frame_file_in = match open(&custom_frame.file) {
@@ -167,10 +167,12 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             frame_delay,
         );
         println!("5-->{}", i);
-        frames.push(frame);
+        frames.push(Ok(frame));
         println!("6-->{}", i);
     }
-    let result = encoder.encode_frames(frames);
+
+    let result = encoder.try_encode_frames(frames);
+    println!("encodeframes_ende");
     Ok(cx.string(""))
 }
 
