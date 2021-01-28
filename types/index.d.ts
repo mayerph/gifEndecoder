@@ -18,3 +18,13 @@ export declare function decodeGif(srcFile: string, dstDirectory: string): GifMet
 export declare function encodeGif(gifMeta: GifMeta, dstFile: string, infinite: boolean): string
 
 
+/**
+ * 
+ * @param {GifMeta} gifMeta  meta information of the gif file
+ * @param {string} dstFile path to the gif file  
+ * @param {string} infinite loop information of the singles frames
+ * @returns {string} the path to the generated gif file
+ */
+export declare function encodeWithUri(gifMeta: GifMeta, dstFile: string, infinite: boolean): string
+
+

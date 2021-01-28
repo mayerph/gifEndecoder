@@ -20,3 +20,4 @@ neon-serde = "0.2.0"
 serde_derive = "1.0.80"
 serde = "1.0.80"
 image = { git = "https://github.com/image-rs/image.git", branch = "master" }
+base64 = "0.13.0"
