@@ -166,12 +166,12 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             custom_frame.top,
             frame_delay,
         );
-        println!("5-->{}", i);
-        frames.push(Ok(frame));
+        let my_frame = encoder.encode_frame(frame);
+        //frames.push(my_frame);
         println!("6-->{}", i);
     }
     println!("encodeframes_start");
-    let result = encoder.try_encode_frames(frames);
+    //let result = encoder.try_encode_frames(frames);
     println!("encodeframes_ende");
     Ok(cx.string(""))
 }
@@ -241,6 +241,7 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
         frames.push(frame);
         println!("6-->");
     }
+
     let result = encoder.encode_frames(frames);
     Ok(cx.string(""))
 }
