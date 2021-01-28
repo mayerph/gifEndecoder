@@ -141,12 +141,12 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(_) => panic!("an error occurred during file write."),
     };
 
-    let mut encoder = GifEncoder::new(file_in);
-    if infinite == true {
-        encoder.set_repeat(Infinite).unwrap();
-    };
     let mut frames: Vec<ImageResult<IFrame>> = Vec::new();
     for (i, custom_frame) in gif.frames.iter().enumerate() {
+        let mut encoder = GifEncoder::new(file_in.try_clone().unwrap());
+        if infinite == true {
+            encoder.set_repeat(Infinite).unwrap();
+        };
         println!("1-->{}", i);
         let frame_file_in = match open(&custom_frame.file) {
             Ok(v) => v,
@@ -168,14 +168,12 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             custom_frame.top,
             frame_delay,
         );
-        //let my_frame = encoder.encode_frame(frame);
-        //frames.push(my_frame);
-
-        async {
-            println!("hey");
+        //println!("hey");
+        thread::spawn(move || {
             encoder.encode_frame(frame);
-        };
-        println!("6-->{}", i);
+
+            println!("6-->{}", i);
+        });
     }
     println!("encodeframes_start");
     //let result = encoder.try_encode_frames(frames);
