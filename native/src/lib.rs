@@ -170,7 +170,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         frames.push(Ok(frame));
         println!("6-->{}", i);
     }
-
+    println!("encodeframes_start");
     let result = encoder.try_encode_frames(frames);
     println!("encodeframes_ende");
     Ok(cx.string(""))
