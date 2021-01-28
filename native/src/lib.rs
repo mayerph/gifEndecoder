@@ -145,23 +145,28 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
     };
     let mut frames: Vec<IFrame> = Vec::new();
     for custom_frame in gif.frames.iter() {
+        println!("1-->");
         let frame_file_in = match open(&custom_frame.file) {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during file read."),
         };
-
+        println!("2-->");
         let frame_rgb_image = frame_file_in.into_rgba8();
+
+        println!("3-->");
         let frame_delay = IDelay::from_numer_denom_ms(
             custom_frame.delay.numerator,
             custom_frame.delay.denominator,
         );
+
+        println!("4-->");
         let frame = IFrame::from_parts(
             frame_rgb_image,
             custom_frame.left,
             custom_frame.top,
             frame_delay,
         );
-
+        println!("5-->");
         frames.push(frame);
     }
     let result = encoder.encode_frames(frames);
@@ -206,26 +211,32 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
     };
     let mut frames: Vec<IFrame> = Vec::new();
     for custom_frame in gif.frames.iter() {
+        println!("1-->");
         let frame_file_in = match dec(&custom_frame.file) {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during uri decoding (1)"),
         };
+        println!("2-->");
         let frame_rgb_image = match load_from_memory_with_format(&frame_file_in, ImageFormat::Png) {
             Ok(v) => v.into_rgba8(),
             Err(_) => panic!("an error occurred during uri decoding (2)"),
         };
+        println!("3-->");
         let frame_delay = IDelay::from_numer_denom_ms(
             custom_frame.delay.numerator,
             custom_frame.delay.denominator,
         );
+        println!("4-->");
         let frame = IFrame::from_parts(
             frame_rgb_image,
             custom_frame.left,
             custom_frame.top,
             frame_delay,
         );
+        println!("5-->");
 
         frames.push(frame);
+        println!("6-->");
     }
     let result = encoder.encode_frames(frames);
     Ok(cx.string(""))
