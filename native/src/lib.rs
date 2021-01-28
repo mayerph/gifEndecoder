@@ -12,6 +12,8 @@ use neon::register_module;
 use neon_serde::export;
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
+use std::sync::Arc;
+use std::thread;
 /**
  * struct representing the delay of a single frame
  */
@@ -166,8 +168,13 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             custom_frame.top,
             frame_delay,
         );
-        let my_frame = encoder.encode_frame(frame);
+        //let my_frame = encoder.encode_frame(frame);
         //frames.push(my_frame);
+
+        async {
+            println!("hey");
+            encoder.encode_frame(frame);
+        };
         println!("6-->{}", i);
     }
     println!("encodeframes_start");
