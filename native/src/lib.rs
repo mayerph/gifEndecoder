@@ -169,11 +169,10 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             frame_delay,
         );
         //println!("hey");
-        thread::spawn(move || {
-            encoder.encode_frame(frame);
 
-            println!("6-->{}", i);
-        });
+        encoder.encode_frame(frame);
+
+        println!("6-->{}", i);
     }
     println!("encodeframes_start");
     //let result = encoder.try_encode_frames(frames);
