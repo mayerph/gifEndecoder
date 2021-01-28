@@ -144,30 +144,31 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         encoder.set_repeat(Infinite).unwrap();
     };
     let mut frames: Vec<IFrame> = Vec::new();
-    for custom_frame in gif.frames.iter() {
-        println!("1-->");
+    for (i, custom_frame) in gif.frames.iter().enumerate() {
+        println!("1-->{}", i);
         let frame_file_in = match open(&custom_frame.file) {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during file read."),
         };
-        println!("2-->");
+        println!("2-->{}", i);
         let frame_rgb_image = frame_file_in.into_rgba8();
 
-        println!("3-->");
+        println!("3-->{}", i);
         let frame_delay = IDelay::from_numer_denom_ms(
             custom_frame.delay.numerator,
             custom_frame.delay.denominator,
         );
 
-        println!("4-->");
+        println!("4-->{}", i);
         let frame = IFrame::from_parts(
             frame_rgb_image,
             custom_frame.left,
             custom_frame.top,
             frame_delay,
         );
-        println!("5-->");
+        println!("5-->{}", i);
         frames.push(frame);
+        println!("6-->{}", i);
     }
     let result = encoder.encode_frames(frames);
     Ok(cx.string(""))
