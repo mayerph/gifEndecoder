@@ -158,7 +158,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         println!("2-->{}", i);
         let frame_rgb_image = frame_file_in.into_rgba8();
         save_buffer_with_format(
-            "./",
+            "./next.png",
             &frame_rgb_image,
             100,
             100,
