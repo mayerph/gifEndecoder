@@ -155,20 +155,17 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         encoder.set_repeat(Infinite).unwrap();
     };
     for (i, custom_frame) in gif.frames.iter().enumerate() {
-        println!("1-->{}", i);
         let frame_file_in = match open(&custom_frame.file) {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during file read."),
         };
 
-        println!("2-->{}", i);
         let frame_rgb_image = frame_file_in.into_rgba8();
-        println!("3-->{}", i);
+
         let frame_delay = IDelay::from_numer_denom_ms(
             custom_frame.delay.numerator,
             custom_frame.delay.denominator,
         );
-        println!("4-->{}", i);
         let frame = IFrame::from_parts(
             frame_rgb_image,
             custom_frame.left,
@@ -183,12 +180,9 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         //
         encoder.encode_frame(frame);
         //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
-
-        println!("6-->{}", i);
     }
-    println!("encodeframes_start");
     //let result = encoder.try_encode_frames(frames);
-    println!("encodeframes_ende");
+
     Ok(cx.string(""))
 }
 
@@ -219,43 +213,43 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(_) => panic!("the third value has to be of type boolean."),
     };
 
+    let speed = match cx.argument::<JsNumber>(3) {
+        Ok(v) => v.value(),
+        Err(_) => panic!("the 4th argument has to be of type number."),
+    };
+
     let file_in = match File::create(filename) {
         Ok(v) => v,
         Err(_) => panic!("an error occurred during file write."),
     };
 
-    let mut encoder = GifEncoder::new(file_in);
+    //let mut encoder = GifEncoder::new(file_in);
+    let mut encoder = GifEncoder::new_with_speed(file_in, speed as i32);
     if infinite == true {
         encoder.set_repeat(Infinite).unwrap();
     };
     let mut frames: Vec<IFrame> = Vec::new();
     for custom_frame in gif.frames.iter() {
-        println!("1-->");
         let frame_file_in = match dec(&custom_frame.file) {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during uri decoding (1)"),
         };
-        println!("2-->");
         let frame_rgb_image = match load_from_memory_with_format(&frame_file_in, ImageFormat::Png) {
             Ok(v) => v.into_rgba8(),
             Err(_) => panic!("an error occurred during uri decoding (2)"),
         };
-        println!("3-->");
         let frame_delay = IDelay::from_numer_denom_ms(
             custom_frame.delay.numerator,
             custom_frame.delay.denominator,
         );
-        println!("4-->");
         let frame = IFrame::from_parts(
             frame_rgb_image,
             custom_frame.left,
             custom_frame.top,
             frame_delay,
         );
-        println!("5-->");
 
         frames.push(frame);
-        println!("6-->");
     }
 
     let result = encoder.encode_frames(frames);
