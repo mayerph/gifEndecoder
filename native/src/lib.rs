@@ -1,21 +1,16 @@
-use base64::{decode as dec, encode as enc};
-use image::codecs::gif::Repeat::{Finite, Infinite};
-use image::codecs::gif::{GifDecoder, GifEncoder, Repeat};
-use image::io::Reader as ImageReader;
+use base64::decode as dec;
+use image::codecs::gif::Repeat::Infinite;
+use image::codecs::gif::{GifDecoder, GifEncoder};
 use image::load_from_memory_with_format;
-use image::save_buffer_with_format;
-use image::ColorType;
 use image::Delay as IDelay;
 use image::Frame as IFrame;
-use image::{open, AnimationDecoder, ImageDecoder};
-use image::{ImageFormat, ImageResult};
+use image::ImageFormat;
+use image::{open, AnimationDecoder};
 use neon::prelude::*;
 use neon::register_module;
-use neon_serde::export;
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
-use std::sync::Arc;
-use std::thread;
+
 /**
  * struct representing the delay of a single frame
  */
@@ -43,10 +38,6 @@ struct Frame {
 struct GifTemplate {
     file: String,
     frames: Vec<Frame>,
-}
-
-fn hello(mut cx: FunctionContext) -> JsResult<JsString> {
-    Ok(cx.string("hello node"))
 }
 
 /**
@@ -138,21 +129,28 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(_) => panic!("the third argument has to be of type boolean."),
     };
 
+    // 4th argument, speed of encoding
     let speed = match cx.argument::<JsNumber>(3) {
         Ok(v) => v.value(),
         Err(_) => panic!("the 4th argument has to be of type number."),
     };
 
+    // file creation (gif)
     let file_in = match File::create(filename) {
         Ok(v) => v,
         Err(_) => panic!("an error occurred during file write."),
     };
 
     let mut encoder = GifEncoder::new_with_speed(file_in, speed as i32);
+
+    // should the gif repeated
     if infinite == true {
-        encoder.set_repeat(Infinite).unwrap();
+        match encoder.set_repeat(Infinite) {
+            Ok(v) => v,
+            Err(_) => panic!("an error occurred during encoder configuration"),
+        }
     };
-    for (i, custom_frame) in gif.frames.iter().enumerate() {
+    for custom_frame in gif.frames.iter() {
         let frame_file_in = match open(&custom_frame.file) {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during file read."),
@@ -171,7 +169,10 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             frame_delay,
         );
 
-        encoder.encode_frame(frame);
+        match encoder.encode_frame(frame) {
+            Ok(v) => v,
+            Err(_) => panic!("an error occurred while encoding a frame"),
+        }
     }
 
     Ok(cx.string(""))
@@ -217,7 +218,10 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
     //let mut encoder = GifEncoder::new(file_in);
     let mut encoder = GifEncoder::new_with_speed(file_in, speed as i32);
     if infinite == true {
-        encoder.set_repeat(Infinite).unwrap();
+        match encoder.set_repeat(Infinite) {
+            Ok(v) => v,
+            Err(_) => panic!("an error occurred during encoder configuration"),
+        }
     };
     let mut frames: Vec<IFrame> = Vec::new();
     for custom_frame in gif.frames.iter() {
@@ -243,26 +247,19 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
         frames.push(frame);
     }
 
-    let result = encoder.encode_frames(frames);
+    match encoder.encode_frames(frames) {
+        Ok(v) => v,
+        Err(_) => panic!("an error occurred while encoding frames"),
+    }
     Ok(cx.string(""))
 }
 
-fn test(mut cx: FunctionContext) -> JsResult<JsString> {
-    let img = ImageReader::open("myimage.png");
-    let my_gif = match img {
-        Ok(gif) => {
-            let was = gif.decode().unwrap();
-            was.save("empty.jpg").unwrap();
-        }
-        Err(err) => panic!("Fehler"),
-    };
-    Ok(cx.string("hello node"))
-}
-
 register_module!(mut cx, {
-    cx.export_function("hello", hello);
-    cx.export_function("decode", decode);
-    cx.export_function("encode", encode);
-    cx.export_function("ecode_with_uri", encode_with_uri);
+    #[allow(unused_must_use)]
+    {
+        cx.export_function("decode", decode);
+        cx.export_function("encode", encode);
+        cx.export_function("ecode_with_uri", encode_with_uri);
+    }
     Ok(())
 });
