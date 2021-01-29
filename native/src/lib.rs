@@ -186,7 +186,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         // frame lesen in einem separaten thread
         // warten bis alle fertig
         // encode methode aufrufen und zwar außerhalb
-        encoder.encode_frame(frame);
+        //encoder.encode_frame(frame);
         //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
 
         println!("6-->{}", i);
