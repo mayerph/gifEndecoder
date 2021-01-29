@@ -145,7 +145,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
 
     let mut frames: Vec<ImageResult<IFrame>> = Vec::new();
     for (i, custom_frame) in gif.frames.iter().enumerate() {
-        let mut encoder = GifEncoder::new(file_in.try_clone().unwrap());
+        let mut encoder = GifEncoder::new_with_speed(file_in.try_clone().unwrap(), 1);
         if infinite == true {
             encoder.set_repeat(Infinite).unwrap();
         };
@@ -157,22 +157,11 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
 
         println!("2-->{}", i);
         let frame_rgb_image = frame_file_in.into_rgba8();
-        let copy = frame_rgb_image.clone();
-        save_buffer_with_format(
-            format!("./next{}.png", i),
-            &copy,
-            100,
-            100,
-            ColorType::Rgb8,
-            ImageFormat::Png,
-        );
-
         println!("3-->{}", i);
         let frame_delay = IDelay::from_numer_denom_ms(
             custom_frame.delay.numerator,
             custom_frame.delay.denominator,
         );
-
         println!("4-->{}", i);
         let frame = IFrame::from_parts(
             frame_rgb_image,
@@ -180,11 +169,13 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             custom_frame.top,
             frame_delay,
         );
+
         //println!("hey");
         // frame lesen in einem separaten thread
         // warten bis alle fertig
         // encode methode aufrufen und zwar außerhalb
-        //encoder.encode_frame(frame);
+        //
+        encoder.encode_frame(frame);
         //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
 
         println!("6-->{}", i);
