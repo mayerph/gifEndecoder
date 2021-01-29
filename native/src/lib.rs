@@ -158,16 +158,14 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         println!("2-->{}", i);
         let frame_rgb_image = frame_file_in.into_rgba8();
         let copy = frame_rgb_image.clone();
-        thread::spawn(move || {
-            save_buffer_with_format(
-                format!("./next{}.png", i),
-                &copy,
-                100,
-                100,
-                ColorType::Rgb8,
-                ImageFormat::Png,
-            );
-        });
+        save_buffer_with_format(
+            format!("./next{}.png", i),
+            &copy,
+            100,
+            100,
+            ColorType::Rgb8,
+            ImageFormat::Png,
+        );
 
         println!("3-->{}", i);
         let frame_delay = IDelay::from_numer_denom_ms(
