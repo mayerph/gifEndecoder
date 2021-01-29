@@ -25,6 +25,6 @@ export declare function encodeGif(gifMeta: GifMeta, dstFile: string, infinite: b
  * @param {string} infinite loop information of the singles frames
  * @returns {string} the path to the generated gif file
  */
-export declare function encodeWithUri(gifMeta: GifMeta, dstFile: string, infinite: boolean): string
+export declare function encodeWithUri(gifMeta: GifMeta, dstFile: string, infinite: boolean, speed: number): string
 
 
