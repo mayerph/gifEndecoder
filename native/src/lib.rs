@@ -178,10 +178,10 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         // warten bis alle fertig
         // encode methode aufrufen und zwar außerhalb
         //
-        encoder.encode_frame(frame);
+        //encoder.encode_frame(frame);
         //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
     }
-    //let result = encoder.try_encode_frames(frames);
+    let result = encoder.try_encode_frames(frames);
 
     Ok(cx.string(""))
 }
