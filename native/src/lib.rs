@@ -148,8 +148,6 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(_) => panic!("an error occurred during file write."),
     };
 
-    let mut frames: Vec<ImageResult<IFrame>> = Vec::new();
-    //let mut encoder = GifEncoder::new(file_in.try_clone().unwrap());
     let mut encoder = GifEncoder::new_with_speed(file_in, speed as i32);
     if infinite == true {
         encoder.set_repeat(Infinite).unwrap();
@@ -173,16 +171,8 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             frame_delay,
         );
 
-        //println!("hey");
-        // frame lesen in einem separaten thread
-        // warten bis alle fertig
-        // encode methode aufrufen und zwar außerhalb
-        //
-        //encoder.encode_frame(frame);
-        //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
-        frames.push(Ok(frame));
+        encoder.encode_frame(frame);
     }
-    let result = encoder.try_encode_frames(frames);
 
     Ok(cx.string(""))
 }
