@@ -3,6 +3,8 @@ use image::codecs::gif::Repeat::{Finite, Infinite};
 use image::codecs::gif::{GifDecoder, GifEncoder, Repeat};
 use image::io::Reader as ImageReader;
 use image::load_from_memory_with_format;
+use image::save_buffer_with_format;
+use image::ColorType;
 use image::Delay as IDelay;
 use image::Frame as IFrame;
 use image::{open, AnimationDecoder, ImageDecoder};
@@ -152,8 +154,17 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             Ok(v) => v,
             Err(_) => panic!("an error occurred during file read."),
         };
+
         println!("2-->{}", i);
         let frame_rgb_image = frame_file_in.into_rgba8();
+        save_buffer_with_format(
+            "./",
+            &frame_rgb_image,
+            100,
+            100,
+            ColorType::Rgb8,
+            ImageFormat::Png,
+        );
 
         println!("3-->{}", i);
         let frame_delay = IDelay::from_numer_denom_ms(
@@ -169,8 +180,11 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
             frame_delay,
         );
         //println!("hey");
-
+        // frame lesen in einem separaten thread
+        // warten bis alle fertig
+        // encode methode aufrufen und zwar außerhalb
         encoder.encode_frame(frame);
+        //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
 
         println!("6-->{}", i);
     }
