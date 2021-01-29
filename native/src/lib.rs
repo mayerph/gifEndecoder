@@ -150,7 +150,8 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
 
     let mut frames: Vec<ImageResult<IFrame>> = Vec::new();
     for (i, custom_frame) in gif.frames.iter().enumerate() {
-        let mut encoder = GifEncoder::new_with_speed(file_in.try_clone().unwrap(), speed as i32);
+        //let mut encoder = GifEncoder::new_with_speed(file_in.try_clone().unwrap(), speed as i32);
+        let mut encoder = GifEncoder::new(file_in.try_clone().unwrap());
         if infinite == true {
             encoder.set_repeat(Infinite).unwrap();
         };
