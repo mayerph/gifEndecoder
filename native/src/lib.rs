@@ -180,6 +180,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         //
         //encoder.encode_frame(frame);
         //encoder.encode(data: &[u8], width: u32, height: u32, color: ColorType);
+        frames.push(Ok(frame));
     }
     let result = encoder.try_encode_frames(frames);
 
