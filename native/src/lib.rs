@@ -138,7 +138,7 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(_) => panic!("the third argument has to be of type boolean."),
     };
 
-    let speed = match cx.argument::<JsNumber>(2) {
+    let speed = match cx.argument::<JsNumber>(3) {
         Ok(v) => v.value(),
         Err(_) => panic!("the 4th argument has to be of type number."),
     };
