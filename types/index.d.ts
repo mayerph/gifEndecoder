@@ -15,7 +15,7 @@ export declare function decodeGif(srcFile: string, dstDirectory: string): GifMet
  * @param {string} infinite loop information of the singles frames
  * @returns {string} the path to the generated gif file
  */
-export declare function encodeGif(gifMeta: GifMeta, dstFile: string, infinite: boolean): string
+export declare function encodeGif(gifMeta: GifMeta, dstFile: string, infinite: boolean, speed: number): string
 
 
 /**
