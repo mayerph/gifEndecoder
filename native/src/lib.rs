@@ -72,12 +72,12 @@ impl Task for EncodeAsyncTask {
                 Err(_) => panic!("an error occurred during encoder configuration"),
             }
         };
-        for custom_frame in self.gif.frames.iter() {
+        for (i, custom_frame) in self.gif.frames.iter().enumerate() {
             let frame_file_in = match open(&custom_frame.file) {
                 Ok(v) => v,
                 Err(_) => panic!("an error occurred during file read."),
             };
-
+            println!("iteration {}", i);
             let frame_rgb_image = frame_file_in.into_rgba8();
 
             let frame_delay = IDelay::from_numer_denom_ms(
