@@ -297,8 +297,11 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
 }
 
 register_module!(mut cx, {
-    cx.export_function("decode", decode);
-    cx.export_function("encode", encode);
-    cx.export_function("ecode_with_uri", encode_with_uri);
-    Ok(())
+    #[allow(unused_must_use)]
+    {
+        cx.export_function("decode", decode);
+        cx.export_function("encode", encode);
+        cx.export_function("ecode_with_uri", encode_with_uri);
+        Ok(())
+    }
 });
