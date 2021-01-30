@@ -40,6 +40,75 @@ struct GifTemplate {
     frames: Vec<Frame>,
 }
 
+// arguments for the encode async task
+struct EncodeAsyncTask {
+    filename: String,
+    gif: GifTemplate,
+    infinite: bool,
+    speed: i32,
+}
+
+impl Task for EncodeAsyncTask {
+    // The task's result type, which is sent back to the main thread to communicate a successful result back to JavaScript.
+    type Output = String;
+    // The task's error type, which is sent back to the main thread to communicate a task failure back to JavaScript.
+    type Error = String;
+    // The type of JavaScript value that gets produced to the asynchronous callback on the main thread after the task is completed.
+    type JsEvent = JsString;
+    // Perform the task, producing either a successful Output or an unsuccessful Error. This method is executed in a background thread as part of libuv's built-in thread pool.
+    fn perform(&self) -> Result<Self::Output, Self::Error> {
+        // file creation (gif)
+        let file_in = match File::create(self.filename.clone()) {
+            Ok(v) => v,
+            Err(_) => panic!("an error occurred during file write."),
+        };
+
+        let mut encoder = GifEncoder::new_with_speed(file_in, self.speed);
+
+        // should the gif repeated
+        if self.infinite == true {
+            match encoder.set_repeat(Infinite) {
+                Ok(v) => v,
+                Err(_) => panic!("an error occurred during encoder configuration"),
+            }
+        };
+        for custom_frame in self.gif.frames.iter() {
+            let frame_file_in = match open(&custom_frame.file) {
+                Ok(v) => v,
+                Err(_) => panic!("an error occurred during file read."),
+            };
+
+            let frame_rgb_image = frame_file_in.into_rgba8();
+
+            let frame_delay = IDelay::from_numer_denom_ms(
+                custom_frame.delay.numerator,
+                custom_frame.delay.denominator,
+            );
+            let frame = IFrame::from_parts(
+                frame_rgb_image,
+                custom_frame.left,
+                custom_frame.top,
+                frame_delay,
+            );
+
+            match encoder.encode_frame(frame) {
+                Ok(v) => v,
+                Err(_) => panic!("an error occurred while encoding a frame"),
+            }
+        }
+
+        return Ok(self.filename.clone());
+    }
+    // Convert the result of the task to a JavaScript value to be passed to the asynchronous callback. This method is executed on the main thread at some point after the background task is completed.
+    fn complete(
+        self,
+        mut cx: TaskContext,
+        result: Result<Self::Output, Self::Error>,
+    ) -> JsResult<Self::JsEvent> {
+        Ok(cx.string(result.unwrap()))
+    }
+}
+
 /**
  * decode a gif
  * returns an object with all the meta information of the gif file
@@ -102,7 +171,7 @@ fn decode(mut cx: FunctionContext) -> JsResult<JsValue> {
     Ok(js_value)
 }
 
-fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
+fn encode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     // first argument
     let filename = match cx.argument::<JsString>(0) {
         Ok(v) => v.value(),
@@ -135,47 +204,19 @@ fn encode(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(_) => panic!("the 4th argument has to be of type number."),
     };
 
-    // file creation (gif)
-    let file_in = match File::create(filename) {
+    // 5th argument, is the callback
+    let cb = match cx.argument::<JsFunction>(4) {
         Ok(v) => v,
-        Err(_) => panic!("an error occurred during file write."),
+        Err(_) => panic!("the 5th argument has to be a function."),
     };
-
-    let mut encoder = GifEncoder::new_with_speed(file_in, speed as i32);
-
-    // should the gif repeated
-    if infinite == true {
-        match encoder.set_repeat(Infinite) {
-            Ok(v) => v,
-            Err(_) => panic!("an error occurred during encoder configuration"),
-        }
+    let task = EncodeAsyncTask {
+        filename: filename,
+        gif: gif,
+        infinite: infinite,
+        speed: speed as i32,
     };
-    for custom_frame in gif.frames.iter() {
-        let frame_file_in = match open(&custom_frame.file) {
-            Ok(v) => v,
-            Err(_) => panic!("an error occurred during file read."),
-        };
-
-        let frame_rgb_image = frame_file_in.into_rgba8();
-
-        let frame_delay = IDelay::from_numer_denom_ms(
-            custom_frame.delay.numerator,
-            custom_frame.delay.denominator,
-        );
-        let frame = IFrame::from_parts(
-            frame_rgb_image,
-            custom_frame.left,
-            custom_frame.top,
-            frame_delay,
-        );
-
-        match encoder.encode_frame(frame) {
-            Ok(v) => v,
-            Err(_) => panic!("an error occurred while encoding a frame"),
-        }
-    }
-
-    Ok(cx.string(""))
+    task.schedule(cb);
+    Ok(cx.undefined())
 }
 
 fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
