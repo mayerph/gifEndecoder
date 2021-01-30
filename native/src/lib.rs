@@ -57,6 +57,7 @@ impl Task for EncodeAsyncTask {
     type JsEvent = JsString;
     // Perform the task, producing either a successful Output or an unsuccessful Error. This method is executed in a background thread as part of libuv's built-in thread pool.
     fn perform(&self) -> Result<Self::Output, Self::Error> {
+        println!("???????");
         // file creation (gif)
         let file_in = match File::create(self.filename.clone()) {
             Ok(v) => v,
@@ -296,11 +297,8 @@ fn encode_with_uri(mut cx: FunctionContext) -> JsResult<JsString> {
 }
 
 register_module!(mut cx, {
-    #[allow(unused_must_use)]
-    {
-        cx.export_function("decode", decode);
-        cx.export_function("encode", encode);
-        cx.export_function("ecode_with_uri", encode_with_uri);
-    }
+    cx.export_function("decode", decode);
+    cx.export_function("encode", encode);
+    cx.export_function("ecode_with_uri", encode_with_uri);
     Ok(())
 });
