@@ -6,7 +6,7 @@ import { GifMeta } from "./gifMeta.interface"
  * @param {string} dstDirectory the location where the raw data should be stored
  * @returns {GifMeta} meta information of the decoded gif file
  */
-export declare function decodeGif(srcFile: string, dstDirectory: string): Promise<GifMeta>
+export declare function decodeGif(srcFile: string, dstDirectory: string, callback: any): GifMeta
 
 /**
  * 

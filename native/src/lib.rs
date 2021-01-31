@@ -48,6 +48,11 @@ struct EncodeAsyncTask {
     speed: i32,
 }
 
+struct DecodeAsyncTask {
+    source_file: String,
+    destination: String,
+}
+
 impl Task for EncodeAsyncTask {
     // The task's result type, which is sent back to the main thread to communicate a successful result back to JavaScript.
     type Output = String;
@@ -57,7 +62,6 @@ impl Task for EncodeAsyncTask {
     type JsEvent = JsString;
     // Perform the task, producing either a successful Output or an unsuccessful Error. This method is executed in a background thread as part of libuv's built-in thread pool.
     fn perform(&self) -> Result<Self::Output, Self::Error> {
-        println!("???????");
         // file creation (gif)
         let file_in = match File::create(self.filename.clone()) {
             Ok(v) => v,
@@ -78,7 +82,7 @@ impl Task for EncodeAsyncTask {
                 Ok(v) => v,
                 Err(_) => panic!("an error occurred during file read."),
             };
-            println!("iteration {}", i);
+
             let frame_rgb_image = frame_file_in.into_rgba8();
 
             let frame_delay = IDelay::from_numer_denom_ms(
@@ -110,11 +114,67 @@ impl Task for EncodeAsyncTask {
     }
 }
 
+impl Task for DecodeAsyncTask {
+    // The task's result type, which is sent back to the main thread to communicate a successful result back to JavaScript.
+    type Output = GifTemplate;
+    // The task's error type, which is sent back to the main thread to communicate a task failure back to JavaScript.
+    type Error = String;
+    // The type of JavaScript value that gets produced to the asynchronous callback on the main thread after the task is completed.
+    type JsEvent = JsValue;
+    // Perform the task, producing either a successful Output or an unsuccessful Error. This method is executed in a background thread as part of libuv's built-in thread pool.
+    fn perform(&self) -> Result<Self::Output, Self::Error> {
+        let file_in = match File::open(&self.source_file) {
+            Ok(v) => v,
+            Err(_) => panic!("an error occurred during file read."),
+        };
+        let decoder = match GifDecoder::new(file_in) {
+            Ok(v) => v,
+            Err(_) => panic!("an error occurred during initialisation of the gif decoder"),
+        };
+        let frames = decoder.into_frames();
+        let frames = frames.collect_frames().expect("error decoding gif");
+        let mut custom_frames: Vec<Frame> = Vec::new();
+        for (i, frame) in frames.iter().enumerate() {
+            let delay = frame.delay().numer_denom_ms();
+            let buffer = frame.clone().into_buffer();
+            let file = format!("{}/{}.png", self.destination, i);
+            let custom_frame = Frame {
+                file: file.clone(),
+                delay: Delay {
+                    numerator: delay.0,
+                    denominator: delay.1,
+                },
+                left: frame.left(),
+                top: frame.top(),
+            };
+            custom_frames.push(custom_frame);
+            match buffer.save(file) {
+                Ok(v) => v,
+                Err(_) => panic!("an error occurred during file write operation"),
+            };
+        }
+        let gif = GifTemplate {
+            file: self.source_file.clone(),
+            frames: custom_frames,
+        };
+        Ok(gif)
+    }
+    // Convert the result of the task to a JavaScript value to be passed to the asynchronous callback. This method is executed on the main thread at some point after the background task is completed.
+    fn complete(
+        self,
+        mut cx: TaskContext,
+        result: Result<Self::Output, Self::Error>,
+    ) -> JsResult<Self::JsEvent> {
+        let js_value = neon_serde::to_value(&mut cx, &result.unwrap())?;
+        Ok(js_value)
+    }
+}
+
 /**
  * decode a gif
  * returns an object with all the meta information of the gif file
  */
-fn decode(mut cx: FunctionContext) -> JsResult<JsValue> {
+fn decode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let source_file = match cx.argument::<JsString>(0) {
         Ok(v) => v.value(),
         Err(_) => panic!(
@@ -128,48 +188,18 @@ fn decode(mut cx: FunctionContext) -> JsResult<JsValue> {
             "missing / wrong argument. The first argument has to be the destination of type string."
         ),
     };
-    let file_in = match File::open(&source_file) {
+
+    let cb = match cx.argument::<JsFunction>(4) {
         Ok(v) => v,
-        Err(_) => panic!("an error occurred during file read."),
+        Err(_) => panic!("the 5th argument has to be a function."),
     };
 
-    let decoder = match GifDecoder::new(file_in) {
-        Ok(v) => v,
-        Err(_) => panic!("an error occurred during initialisation of the gif decoder"),
+    let task = DecodeAsyncTask {
+        source_file: source_file,
+        destination: destination,
     };
-
-    let frames = decoder.into_frames();
-    let frames = frames.collect_frames().expect("error decoding gif");
-    let mut custom_frames: Vec<Frame> = Vec::new();
-    for (i, frame) in frames.iter().enumerate() {
-        let delay = frame.delay().numer_denom_ms();
-
-        let buffer = frame.clone().into_buffer();
-        let file = format!("{}/{}.png", destination, i);
-        let custom_frame = Frame {
-            file: file.clone(),
-            delay: Delay {
-                numerator: delay.0,
-                denominator: delay.1,
-            },
-            left: frame.left(),
-            top: frame.top(),
-        };
-        custom_frames.push(custom_frame);
-        match buffer.save(file) {
-            Ok(v) => v,
-            Err(_) => panic!("an error occurred during file write operation"),
-        };
-    }
-
-    let gif = GifTemplate {
-        file: source_file,
-        frames: custom_frames,
-    };
-
-    let js_value = neon_serde::to_value(&mut cx, &gif)?;
-
-    Ok(js_value)
+    task.schedule(cb);
+    Ok(cx.undefined())
 }
 
 fn encode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
