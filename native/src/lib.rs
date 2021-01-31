@@ -189,9 +189,9 @@ fn decode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
         ),
     };
 
-    let cb = match cx.argument::<JsFunction>(4) {
+    let cb = match cx.argument::<JsFunction>(2) {
         Ok(v) => v,
-        Err(_) => panic!("the 5th argument has to be a function."),
+        Err(_) => panic!("the 3rd argument has to be a function."),
     };
 
     let task = DecodeAsyncTask {
