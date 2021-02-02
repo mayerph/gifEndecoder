@@ -6,7 +6,7 @@
   "author": "mayerph <ph.mayer@campus.lmu.de>",
   "license": "MIT",
   "scripts": {
-    "install" : "neon build"
+    "install" : "neon build --release"
   },
   "types": "types/index.d.ts",
   "dependencies": {
